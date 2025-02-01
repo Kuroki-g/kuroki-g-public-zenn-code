@@ -1,4 +1,4 @@
-namespace TodoApi.Web.Tests;
+namespace TodoApi.Web.ApiTest.Tests;
 
 public class UnitTest1
 {
