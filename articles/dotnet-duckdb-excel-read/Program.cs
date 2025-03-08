@@ -5,16 +5,10 @@ duckDBConnection.Open();
 
 using var command = duckDBConnection.CreateCommand();
 
-command.CommandText = "CREATE TABLE integers(foo INTEGER, bar INTEGER);";
+command.CommandText = "CREATE TABLE sample_database AS SELECT * FROM read_xlsx('./data/05k2-3.xlsx', header = true, range = 'A4:I100', empty_as_varchar=true);";
 var executeNonQuery = command.ExecuteNonQuery();
 
-command.CommandText = "INSERT INTO integers VALUES (3, 4), (5, 6), (7, 8);";
-executeNonQuery = command.ExecuteNonQuery();
-
-command.CommandText = "Select count(*) from integers";
-var executeScalar = command.ExecuteScalar();
-
-command.CommandText = "SELECT foo, bar FROM integers";
+command.CommandText = "SELECT * FROM sample_database";
 var reader = command.ExecuteReader();
 
 PrintQueryResults(reader);
@@ -33,7 +27,7 @@ static void PrintQueryResults(DuckDBDataReader queryResult)
   {
     for (int ordinal = 0; ordinal < queryResult.FieldCount; ordinal++)
     {
-      var val = queryResult.GetInt32(ordinal);
+      var val = queryResult.GetValue(ordinal).ToString();
       Console.Write(val);
       Console.Write(" ");
     }
