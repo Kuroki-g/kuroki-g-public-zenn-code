@@ -53,6 +53,19 @@ sealed class SampleBook : IDisposable
     }
 
     /// <summary>
+    /// 現在のbookを保存し、streamに渡すためのバイト列を生成する。
+    /// </summary>
+    public async Task<byte[]> SaveAndGetBytesAsync()
+    {
+        _workbookPart.Workbook.Save();
+        
+        using var stream = new MemoryStream();
+        _document.Clone(stream);
+
+        return stream.ToArray();
+    }
+
+    /// <summary>
     /// Book全体の保存を行う。
     /// </summary>
     public void Save() {

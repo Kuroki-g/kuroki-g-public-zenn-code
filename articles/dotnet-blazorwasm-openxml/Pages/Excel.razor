@@ -4,11 +4,48 @@
 
 <h1>Excel</h1>
 
-<button class="btn btn-primary" @onclick="GenerateSheet">Click me</button>
+<script>
+function DownloadFile(filename, contentType, content) {
+    // Create a new Blob object from the byte array
+    const data = new Uint8Array(content);
+    const blob = new Blob([data], { type: contentType });
 
+    // Create a URL for the blob
+    const url = window.URL.createObjectURL(blob);
+
+    // Create a temporary anchor element and trigger the download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename; // Set the filename
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+
+<button class="btn btn-primary" @onclick="GenerateExcel">Generate Excel</button>
+
+@using Models
+@inject IJSRuntime JS
 @code {
-    private void GenerateSheet()
+    private async void GenerateExcel()
     {
-        // Generate code here!
+        Console.WriteLine("called GenerateExcel");
+        
+        using var book = SampleBook.CreateBook("example.xlsx");
+        book.CreateSheet("シート2");
+        book.Save();
+
+        byte[] fileBytes = await book.SaveAndGetBytesAsync();
+        
+        await JS.InvokeVoidAsync(
+            "DownloadFile",
+            "example.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileBytes
+        );
     }
 }
