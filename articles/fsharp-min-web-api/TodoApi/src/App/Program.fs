@@ -18,7 +18,25 @@ let main args =
 
     builder.Services.AddDatabaseDeveloperPageExceptionFilter() |> ignore
 
+    builder.Services.AddEndpointsApiExplorer() |> ignore
+
+    builder.Services.AddOpenApiDocument(fun config ->
+        config.DocumentName <- "TodoAPI"
+        config.Title <- "TodoAPI v1"
+        config.Version <- "v1")
+    |> ignore
+
     let app = builder.Build()
+
+    if app.Environment.IsDevelopment() then
+        app.UseOpenApi() |> ignore
+
+        app.UseSwaggerUi(fun config ->
+            config.DocumentTitle <- "TodoAPI"
+            config.Path <- "/swagger"
+            config.DocumentPath <- "/swagger/{documentName}/swagger.json"
+            config.DocExpansion <- "list")
+        |> ignore
 
     app.MapGet("/todoitems", Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db -> db.Todos.ToListAsync()))
     |> ignore
