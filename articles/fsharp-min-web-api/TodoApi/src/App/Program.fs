@@ -38,18 +38,20 @@ let main args =
             config.DocExpansion <- "list")
         |> ignore
 
-    app.MapGet("/todoitems", Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db -> db.Todos.ToListAsync()))
+    let todoItems = app.MapGroup "/todoitems"
+
+    todoItems.MapGet("/", Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db -> db.Todos.ToListAsync()))
     |> ignore
 
-    app.MapGet(
-        "/todoitems/complete",
+    todoItems.MapGet(
+        "/complete",
         Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db ->
             db.Todos.Where(fun t -> t.IsComplete).ToListAsync())
     )
     |> ignore
 
-    app.MapGet(
-        "/todoitems/{id}",
+    todoItems.MapGet(
+        "/{id}",
         Func<int, TodoDb, Task<IResult>>(fun id db ->
             task {
                 match! db.Todos.FindAsync id with
@@ -59,8 +61,8 @@ let main args =
     )
     |> ignore
 
-    app.MapPost(
-        "/todoitems",
+    todoItems.MapPost(
+        "/",
         Func<Todo, TodoDb, Task<IResult>>(fun todo db ->
             task {
                 db.Todos.Add todo |> ignore
@@ -71,8 +73,8 @@ let main args =
     )
     |> ignore
 
-    app.MapPut(
-        "/todoitems/{id}",
+    todoItems.MapPut(
+        "/{id}",
         Func<int, Todo, TodoDb, Task<IResult>>(fun id inputTodo db ->
             task {
                 match! db.Todos.FindAsync id with
@@ -86,8 +88,8 @@ let main args =
     )
     |> ignore
 
-    app.MapDelete(
-        "/todoitems/{id}",
+    todoItems.MapDelete(
+        "/{id}",
         Func<int, TodoDb, Task<IResult>>(fun id db ->
             task {
                 match! db.Todos.FindAsync id with
