@@ -41,6 +41,47 @@ let main args =
     )
     |> ignore
 
+    app.MapPost(
+        "/todoitems",
+        Func<Todo, TodoDb, Task<IResult>>(fun todo db ->
+            task {
+                db.Todos.Add todo |> ignore
+                let! result = db.SaveChangesAsync()
+
+                return Results.Created($"/todoitems/{todo.Id}", result)
+            })
+    )
+    |> ignore
+
+    app.MapPut(
+        "/todoitems/{id}",
+        Func<int, Todo, TodoDb, Task<IResult>>(fun id inputTodo db ->
+            task {
+                match! db.Todos.FindAsync id with
+                | null -> return Results.NotFound()
+                | todo ->
+                    todo.Name <- inputTodo.Name
+                    todo.IsComplete <- inputTodo.IsComplete
+                    db.SaveChangesAsync() |> ignore
+                    return Results.NoContent()
+            })
+    )
+    |> ignore
+
+    app.MapDelete(
+        "/todoitems/{id}",
+        Func<int, TodoDb, Task<IResult>>(fun id db ->
+            task {
+                match! db.Todos.FindAsync id with
+                | null -> return Results.NotFound()
+                | todo ->
+                    db.Todos.Remove todo |> ignore
+                    db.SaveChangesAsync() |> ignore
+                    return Results.NoContent()
+            })
+    )
+    |> ignore
+
     app.Run()
 
     0 // Exit code
