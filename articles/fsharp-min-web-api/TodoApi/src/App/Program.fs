@@ -9,6 +9,54 @@ open System.Threading.Tasks
 open TodoApi.Data
 open TodoApi.Models
 
+module TodoItems =
+    let getAllTodos =
+        Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db -> db.Todos.ToListAsync())
+
+    let getCompleteTodos =
+        Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db ->
+            db.Todos.Where(fun t -> t.IsComplete).ToListAsync())
+
+    let getTodo =
+        Func<int, TodoDb, Task<IResult>>(fun id db ->
+            task {
+                match! db.Todos.FindAsync id with
+                | null -> return Results.NotFound()
+                | todo -> return Results.Ok todo
+            })
+
+    let createTodo =
+        Func<Todo, TodoDb, Task<IResult>>(fun todo db ->
+            task {
+                db.Todos.Add todo |> ignore
+                let! result = db.SaveChangesAsync()
+
+                return Results.Created($"/todoitems/{todo.Id}", result)
+            })
+
+    let updateTodo =
+        Func<int, Todo, TodoDb, Task<IResult>>(fun id inputTodo db ->
+            task {
+                match! db.Todos.FindAsync id with
+                | null -> return Results.NotFound()
+                | todo ->
+                    todo.Name <- inputTodo.Name
+                    todo.IsComplete <- inputTodo.IsComplete
+                    db.SaveChangesAsync() |> ignore
+                    return Results.NoContent()
+            })
+
+    let deleteTodo =
+        Func<int, TodoDb, Task<IResult>>(fun id db ->
+            task {
+                match! db.Todos.FindAsync id with
+                | null -> return Results.NotFound()
+                | todo ->
+                    db.Todos.Remove todo |> ignore
+                    db.SaveChangesAsync() |> ignore
+                    return Results.NoContent()
+            })
+
 [<EntryPoint>]
 let main args =
     let builder = WebApplication.CreateBuilder(args)
@@ -40,67 +88,12 @@ let main args =
 
     let todoItems = app.MapGroup "/todoitems"
 
-    todoItems.MapGet("/", Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db -> db.Todos.ToListAsync()))
-    |> ignore
-
-    todoItems.MapGet(
-        "/complete",
-        Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db ->
-            db.Todos.Where(fun t -> t.IsComplete).ToListAsync())
-    )
-    |> ignore
-
-    todoItems.MapGet(
-        "/{id}",
-        Func<int, TodoDb, Task<IResult>>(fun id db ->
-            task {
-                match! db.Todos.FindAsync id with
-                | null -> return Results.NotFound()
-                | todo -> return Results.Ok todo
-            })
-    )
-    |> ignore
-
-    todoItems.MapPost(
-        "/",
-        Func<Todo, TodoDb, Task<IResult>>(fun todo db ->
-            task {
-                db.Todos.Add todo |> ignore
-                let! result = db.SaveChangesAsync()
-
-                return Results.Created($"/todoitems/{todo.Id}", result)
-            })
-    )
-    |> ignore
-
-    todoItems.MapPut(
-        "/{id}",
-        Func<int, Todo, TodoDb, Task<IResult>>(fun id inputTodo db ->
-            task {
-                match! db.Todos.FindAsync id with
-                | null -> return Results.NotFound()
-                | todo ->
-                    todo.Name <- inputTodo.Name
-                    todo.IsComplete <- inputTodo.IsComplete
-                    db.SaveChangesAsync() |> ignore
-                    return Results.NoContent()
-            })
-    )
-    |> ignore
-
-    todoItems.MapDelete(
-        "/{id}",
-        Func<int, TodoDb, Task<IResult>>(fun id db ->
-            task {
-                match! db.Todos.FindAsync id with
-                | null -> return Results.NotFound()
-                | todo ->
-                    db.Todos.Remove todo |> ignore
-                    db.SaveChangesAsync() |> ignore
-                    return Results.NoContent()
-            })
-    )
-    |> ignore
+    todoItems.MapGet("/", TodoItems.getAllTodos) |> ignore
+    todoItems.MapGet("/complete", TodoItems.getCompleteTodos) |> ignore
+    todoItems.MapGet("/{id}", TodoItems.getTodo) |> ignore
+    todoItems.MapPost("/", TodoItems.createTodo) |> ignore
+    todoItems.MapPut("/{id}", TodoItems.updateTodo) |> ignore
+    todoItems.MapDelete("/{id}", TodoItems.deleteTodo) |> ignore
 
     app.Run()
 
