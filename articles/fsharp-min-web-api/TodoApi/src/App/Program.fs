@@ -11,18 +11,18 @@ open TodoApi.Models
 
 module TodoItems =
     let getAllTodos =
-        Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db -> db.Todos.ToListAsync())
+        Func<TodoDb, Task<IResult>>(fun db -> task { return db.Todos.ToListAsync() |> TypedResults.Ok :> IResult })
 
     let getCompleteTodos =
-        Func<TodoDb, Task<Collections.Generic.List<Todo>>>(fun db ->
-            db.Todos.Where(fun t -> t.IsComplete).ToListAsync())
+        Func<TodoDb, Task<IResult>>(fun db ->
+            task { return db.Todos.Where(fun t -> t.IsComplete).ToListAsync() |> TypedResults.Ok :> IResult })
 
     let getTodo =
         Func<int, TodoDb, Task<IResult>>(fun id db ->
             task {
                 match! db.Todos.FindAsync id with
-                | null -> return Results.NotFound()
-                | todo -> return Results.Ok todo
+                | null -> return TypedResults.NotFound() :> IResult
+                | todo -> return TypedResults.Ok todo :> IResult
             })
 
     let createTodo =
@@ -31,30 +31,30 @@ module TodoItems =
                 db.Todos.Add todo |> ignore
                 let! result = db.SaveChangesAsync()
 
-                return Results.Created($"/todoitems/{todo.Id}", result)
+                return TypedResults.Created($"/todoitems/{todo.Id}", result) :> IResult
             })
 
     let updateTodo =
         Func<int, Todo, TodoDb, Task<IResult>>(fun id inputTodo db ->
             task {
                 match! db.Todos.FindAsync id with
-                | null -> return Results.NotFound()
+                | null -> return TypedResults.NotFound() :> IResult
                 | todo ->
                     todo.Name <- inputTodo.Name
                     todo.IsComplete <- inputTodo.IsComplete
                     db.SaveChangesAsync() |> ignore
-                    return Results.NoContent()
+                    return TypedResults.NoContent() :> IResult
             })
 
     let deleteTodo =
         Func<int, TodoDb, Task<IResult>>(fun id db ->
             task {
                 match! db.Todos.FindAsync id with
-                | null -> return Results.NotFound()
+                | null -> return TypedResults.NotFound() :> IResult
                 | todo ->
                     db.Todos.Remove todo |> ignore
                     db.SaveChangesAsync() |> ignore
-                    return Results.NoContent()
+                    return TypedResults.NoContent() :> IResult
             })
 
 [<EntryPoint>]
