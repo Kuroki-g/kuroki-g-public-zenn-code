@@ -7,41 +7,51 @@ open Microsoft.Extensions.Hosting
 open Microsoft.EntityFrameworkCore
 open System.Threading.Tasks
 open TodoApi.Data
+open TodoApi.Dtos
 open TodoApi.Models
 
 module TodoItems =
     let getAllTodos =
-        Func<TodoDb, Task<IResult>>(fun db -> task { return db.Todos.ToListAsync() |> TypedResults.Ok :> IResult })
+        Func<TodoDb, Task<IResult>>(fun db ->
+            task { return db.Todos.Select(TodoItemDTO.Create).ToListAsync() |> TypedResults.Ok :> IResult })
 
     let getCompleteTodos =
         Func<TodoDb, Task<IResult>>(fun db ->
-            task { return db.Todos.Where(fun t -> t.IsComplete).ToListAsync() |> TypedResults.Ok :> IResult })
+            task {
+                return
+                    db.Todos.Where(fun t -> t.IsComplete).Select(TodoItemDTO.Create).ToListAsync()
+                    |> TypedResults.Ok
+                    :> IResult
+            })
 
     let getTodo =
         Func<int, TodoDb, Task<IResult>>(fun id db ->
             task {
                 match! db.Todos.FindAsync id with
                 | null -> return TypedResults.NotFound() :> IResult
-                | todo -> return TypedResults.Ok todo :> IResult
+                | todo -> return todo |> TodoItemDTO.Create |> TypedResults.Ok :> IResult
             })
 
     let createTodo =
-        Func<Todo, TodoDb, Task<IResult>>(fun todo db ->
+        Func<TodoItemDTO, TodoDb, Task<IResult>>(fun todoItemDTO db ->
             task {
-                db.Todos.Add todo |> ignore
+                let todoItem = new Todo()
+                todoItem.Name <- todoItemDTO.Name
+                todoItem.IsComplete <- todoItemDTO.IsComplete
+                db.Todos.Add todoItem |> ignore
                 let! result = db.SaveChangesAsync()
 
-                return TypedResults.Created($"/todoitems/{todo.Id}", result) :> IResult
+                return TypedResults.Created($"/todoitems/{todoItem.Id}", result) :> IResult
             })
 
     let updateTodo =
-        Func<int, Todo, TodoDb, Task<IResult>>(fun id inputTodo db ->
+        Func<int, TodoItemDTO, TodoDb, Task<IResult>>(fun id todoItemDTO db ->
             task {
                 match! db.Todos.FindAsync id with
                 | null -> return TypedResults.NotFound() :> IResult
                 | todo ->
-                    todo.Name <- inputTodo.Name
-                    todo.IsComplete <- inputTodo.IsComplete
+                    todo.Name <- todoItemDTO.Name
+                    todo.IsComplete <- todoItemDTO.IsComplete
                     db.SaveChangesAsync() |> ignore
                     return TypedResults.NoContent() :> IResult
             })
