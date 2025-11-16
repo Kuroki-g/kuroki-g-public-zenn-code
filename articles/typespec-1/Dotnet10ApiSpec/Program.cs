@@ -1,41 +1,107 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapOpenApi("/openapi/{documentName}.yaml");
 
 app.UseHttpsRedirection();
+app.MapControllers();
 
-var summaries = new[]
+[JsonConverter(typeof(JsonStringEnumConverter<WidgetColor>))]
+public enum WidgetColor
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    Red,
+    Blue
+}
 
-app.MapGet("/weatherforecast", () =>
+public record Widget(
+ string Id,
+ int Weight,
+ WidgetColor Color
+);
+
+public record WidgetList(
+  Widget[] Items
+);
+
+public record AnalyzeResult(
+  string Id,
+    string Analysis
+);
+
+[ApiController]
+[Route("/widgets")]
+[Tags("Widgets")]
+[Produces("application/json")]
+public class WidgetsController : Controller
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    /// <summary>
+    /// List widgets
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    [HttpGet]
+    public WidgetList List()
+    {
+        throw new NotImplementedException();
+    }
 
-app.Run();
+    /** Read widgets */
+    [HttpGet]
+    [Route("{id:string}")]
+    public Widget Read([FromRoute] string id)
+    {
+        throw new NotImplementedException();
+    }
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    /// <summary>
+    /// Create a widget
+    /// </summary>
+    /// <param name="body"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    [HttpPost]
+    public Widget Create([FromBody] Widget body)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Update a widget
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="body"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    [HttpPatch]
+    [Route("{id:string}")]
+    public Widget Update(
+        [FromRoute] string id,
+        [FromBody] Widget body)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Delete a widget
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name=""></param>
+    /// <returns></returns>
+    [HttpDelete]
+    public void Delete([FromRoute] string id)
+    {
+        throw new NotImplementedException();
+    }
+
+    /** Analyze a widget */
+    [HttpPost("{id}/analyze")]
+    public AnalyzeResult Analyze([FromRoute] string id)
+    {
+        throw new NotImplementedException();
+    }
 }
