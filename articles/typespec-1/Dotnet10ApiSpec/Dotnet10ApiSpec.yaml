@@ -1,0 +1,158 @@
+openapi: 3.1.1
+info:
+  title: Dotnet10ApiSpec | v1
+  version: 1.0.0
+paths:
+  /widgets:
+    get:
+      tags:
+        - Widgets
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetList"
+    post:
+      tags:
+        - Widgets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Widget"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/Widget"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/Widget"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+    delete:
+      tags:
+        - Widgets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+  /widgets/{id}:
+    get:
+      tags:
+        - Widgets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+    patch:
+      tags:
+        - Widgets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Widget"
+          text/json:
+            schema:
+              $ref: "#/components/schemas/Widget"
+          application/*+json:
+            schema:
+              $ref: "#/components/schemas/Widget"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+  /widgets/{id}/analyze:
+    post:
+      tags:
+        - Widgets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyzeResult"
+components:
+  schemas:
+    AnalyzeResult:
+      required:
+        - id
+        - analysis
+      type: object
+      properties:
+        id:
+          type: string
+        analysis:
+          type: string
+    Widget:
+      required:
+        - id
+        - weight
+        - color
+      type: object
+      properties:
+        id:
+          type: string
+        weight:
+          pattern: ^-?(?:0|[1-9]\d*)$
+          type:
+            - integer
+            - string
+          format: int32
+        color:
+          $ref: "#/components/schemas/WidgetColor"
+    WidgetColor:
+      enum:
+        - Red
+        - Blue
+    WidgetList:
+      required:
+        - items
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Widget"
+tags:
+  - name: Widgets
