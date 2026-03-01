@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
+  "name": "Claude Code CLI custom dev env",
+  "dockerComposeFile": "./compose.yml",
+  "workspaceFolder": "/workspace",
+  "service": "claude-dev",
+  "forwardPorts": [],
+  "portsAttributes": {
+    "30000-50000": {
+      "onAutoForward": "silent"
+    }
+  }
+}
