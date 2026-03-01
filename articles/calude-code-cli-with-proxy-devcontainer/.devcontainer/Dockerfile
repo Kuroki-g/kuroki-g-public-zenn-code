@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
 # check=error=true
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Kuroki-g
 FROM python:3.14-slim
 
 ARG USER=vscode

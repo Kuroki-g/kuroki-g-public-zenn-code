@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Kuroki-g
 # .devcontainer/change-network.sh
 #
 # Claude CodeのOAuth認証用ポートリバインドモニター。

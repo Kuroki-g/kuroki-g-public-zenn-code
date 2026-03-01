@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 Kuroki-g
 services:
   http-proxy:
     image: ubuntu/squid:6.13-25.04_beta
