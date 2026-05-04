@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="wasm_exec.js"></script>
+    <script>
+        const go = new Go();
+        let instance;
+        WebAssembly.instantiateStreaming(fetch("wasm/main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+            // go:wasmexportを用いる場合にはinstance経由で関数を用いる。
+            instance = result.instance;
+        });
+
+        function callWasm(iterations) {
+            const startTime = performance.now();
+            const sum = instance.exports.calculateSumWasm(iterations);
+            const endTime = performance.now();
+            const wasmTime = endTime - startTime;
+            document.getElementById("wasmResult").innerText = `WASM実行時間: ${wasmTime.toFixed(2)}ミリ秒`;
+            console.log("Wasm Result:", sum);
+        }
+    </script>
+</head>
+
+<body>
+    <button id="wasmButton" onclick="callWasm(1000000)">WASMで重たい計算を始める</button>
+    <p id="wasmResult">WASM実行時間:</p>
+</body>
+
+</html>

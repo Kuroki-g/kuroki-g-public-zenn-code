@@ -1,0 +1,16 @@
+[tools]
+go = "1.24.1"
+
+[tasks.build]
+description = "GoのWASMバイナリをjs向けにビルドします"
+run = [
+    'go version',
+    'cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" ./server/',
+    'GOOS=js GOARCH=wasm go build -o server/wasm/main.wasm main.go'
+]
+
+[tasks.serve]
+description = "WASMバイナリをビルドしてサーバーを実行します"
+depends = ["build"]
+quiet=false
+run = "go run server/server.go"
