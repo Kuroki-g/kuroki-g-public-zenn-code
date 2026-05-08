@@ -1,0 +1,102 @@
+services:
+  mitmproxy:
+    build:
+      context: ./proxy
+      dockerfile: mitmproxy.Dockerfile
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/scripts/entrypoint.sh"]
+    command:
+      - mitmdump
+      - -s
+      - /scripts/filter.py
+      - --set
+      - confdir=/data
+    volumes:
+      - ./proxy/certs:/certs:ro
+      - ./proxy/entrypoint.sh:/scripts/entrypoint.sh:ro
+      - ./proxy/filter.py:/scripts/filter.py:ro
+      - ./proxy/policy.py:/scripts/policy.py:ro
+      - ./proxy/whitelist.toml:/scripts/whitelist.toml:ro
+      - mitmproxy-data:/data
+      - mitmproxy-logs:/logs
+    networks:
+      - internal
+      - external
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s=socket.socket(); s.settimeout(2); s.connect((\"127.0.0.1\", 8080)); s.close()'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  claude-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: go
+      args:
+        USER: ${CONTAINER_USER:?err}
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
+    image: ${PROJECT_NAME:?err}-claude-dev-v1
+    container_name: ${PROJECT_NAME:?err}-claude-dev-v1
+    depends_on:
+      mitmproxy:
+        condition: service_healthy
+
+    ports:
+      - "6060:6060"
+
+    networks:
+      - internal
+
+    environment:
+      - TZ=Asia/Tokyo
+      - LANG=C.UTF-8
+      - http_proxy=http://mitmproxy:8080
+      - https_proxy=http://mitmproxy:8080
+      - HTTP_PROXY=http://mitmproxy:8080
+      - HTTPS_PROXY=http://mitmproxy:8080
+      - no_proxy=localhost,127.0.0.1
+      - NO_PROXY=localhost,127.0.0.1
+      - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/sandbox-ca.crt
+      - PYTHONUNBUFFERED=1
+      - TERM=xterm-256color
+      - PROJECT_NAME=${PROJECT_NAME:?err}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${REPO_ROOT}:/workspace/${PROJECT_NAME:?err}
+      - ${HOME}/.claude:/home/${CONTAINER_USER:?err}/.claude
+      - ${HOME}/.claude.json:/home/${CONTAINER_USER:?err}/.claude.json
+      - ${HOME}/.cache/uv:/home/${CONTAINER_USER:?err}/.cache/uv
+      - ${HOME}/.cache/go:/home/${CONTAINER_USER:?err}/.cache/go
+      - ${HOME}/go/pkg/mod:/home/${CONTAINER_USER:?err}/go/pkg/mod
+      - ${REPO_ROOT}/${COMPOSE_DIR:?err}/.gitconfig:/home/${CONTAINER_USER:?err}/.gitconfig:ro
+      - mitmproxy-logs:/var/log/mitmproxy:ro
+
+    working_dir: /workspace/${PROJECT_NAME:?err}
+    user: "${UID:-1000}:${GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+
+    stdin_open: true
+    tty: true
+
+networks:
+  internal:
+    internal: true
+  external:
+    driver: bridge
+
+volumes:
+  mitmproxy-data:
+  mitmproxy-logs:

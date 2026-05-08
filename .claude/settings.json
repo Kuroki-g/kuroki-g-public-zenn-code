@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Bash(ls *)",
+      "Bash(ls)",
+      "Bash(file *)",
+      "Bash(find *)",
+      "Bash(stat *)",
+      "Bash(wc *)",
+      "Bash(jq *)",
+      "Bash(tree *)",
+      "Bash(tree)",
+      "Bash(lsof *)",
+      "Bash(ps *)",
+      "Bash(git status*)",
+      "Bash(git -C * status*)",
+      "Bash(git log *)",
+      "Bash(git -C * log *)",
+      "Bash(git diff*)",
+      "Bash(git -C * diff*)",
+      "Bash(git show*)",
+      "Bash(git -C * show*)",
+      "Bash(git branch*)",
+      "Bash(git -C * branch*)",
+      "Bash(git remote*)",
+      "Bash(git -C * remote*)",
+      "Bash(git add*)",
+      "Bash(git -C * add*)",
+      "Bash(make)",
+      "Bash(make *)",
+      "Bash(go *)",
+      "Bash(GONOSUMDB='*' go *)"
+    ],
+    "ask": [
+      "Bash(git commit*)",
+      "Bash(git -C * commit*)"
+    ],
+    "deny": [
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(**/certs/**)",
+      "Read(*.crt)",
+      "Read(*.key)",
+      "Read(*.pem)"
+    ]
+  },
+  "includeCoAuthoredBy": false,
+  "attribution":{
+    "commit": "",
+    "pr": ""
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /workspace/kuroki-g-public-zenn-code/.claude/hooks/check_compound_commands.py",
+            "statusMessage": "複合コマンドチェック中..."
+          }
+        ]
+      }
+    ]
+  }
+}

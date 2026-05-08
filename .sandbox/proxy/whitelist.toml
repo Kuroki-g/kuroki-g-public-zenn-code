@@ -1,0 +1,61 @@
+# Proxy whitelist — add domains here to allow access.
+#
+# Each entry: [domains."<host>"]
+#   methods = ["GET","POST","HEAD"]   # optional; default = ["GET","HEAD"]
+#   dlp     = "none"                  # optional; omit to use default DLP scan
+#
+# Subdomain matching is automatic (e.g. "github.com" also allows "api.github.com").
+
+# --- Anthropic (POST allowed) ---
+[domains."anthropic.com"]
+methods = ["GET", "POST", "HEAD"]
+
+[domains."claude.ai"]
+methods = ["GET", "POST", "HEAD"]
+
+[domains."claude.com"]
+methods = ["GET", "POST", "HEAD"]
+
+# --- Dev tools ---
+[domains."github.com"]
+[domains."githubusercontent.com"]
+
+# --- Python ecosystem ---
+[domains."pypi.org"]
+[domains."pythonhosted.org"]
+[domains."docs.python.org"]
+[domains."docs.astral.sh"]
+[domains."docs.pydantic.dev"]
+
+# --- Go ecosystem ---
+[domains."go.dev"]
+[domains."pkg.go.dev"]
+[domains."proxy.golang.org"]
+[domains."sum.golang.org"]
+
+# --- Docs / community ---
+[domains."google.github.io"]
+[domains."learn.microsoft.com"]
+[domains."modelcontextprotocol.io"]
+[domains."speakerdeck.com"]
+[domains."qiita.com"]
+[domains."zenn.dev"]
+[domains."testing.googleblog.com"]
+[domains."www.w3.org"]
+[domains."schemas.opengis.net"]
+
+# --- Geometry ---
+[domains."www.geospatial.jp"]
+[domains."nlftp.mlit.go.jp"]
+[domains."www.mlit.go.jp"]
+[domains."www.geopackage.org"]
+[domains."gdal.org"]
+[domains."www.ogc.org"]
+[domains."www.citygmlwiki.org"]
+
+# --- XML ---
+[domains."www.xmlmaster.org"]
+
+# --- 学術論文 ---
+[domains."jstage.jst.go.jp"]
+[domains."ci.nii.ac.jp"]
